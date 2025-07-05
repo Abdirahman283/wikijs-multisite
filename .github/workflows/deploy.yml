@@ -1,0 +1,57 @@
+name: Déploiement Wiki.js multisite
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Déployer sur le VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cloner le dépôt
+        uses: actions/checkout@v4
+
+      - name: Copier les fichiers sur le VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "."
+          target: "/opt/wikijs-deploy"
+          rm: true  # Supprime les anciens fichiers avant copie (facultatif)
+
+      - name: Relancer les services Docker et Nginx sur le VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "[+] Création du réseau Docker s’il n’existe pas..."
+            if ! docker network ls | grep -q wikinet; then
+              docker network create wikinet
+            fi
+
+            echo "[+] Redémarrage des instances Wiki.js..."
+            docker-compose -f /opt/wikijs-deploy/instances/wiki1/docker-compose.yml pull
+            docker-compose -f /opt/wikijs-deploy/instances/wiki1/docker-compose.yml up -d
+
+            docker-compose -f /opt/wikijs-deploy/instances/wiki2/docker-compose.yml pull
+            docker-compose -f /opt/wikijs-deploy/instances/wiki2/docker-compose.yml up -d
+
+            docker-compose -f /opt/wikijs-deploy/instances/wiki-public/docker-compose.yml pull
+            docker-compose -f /opt/wikijs-deploy/instances/wiki-public/docker-compose.yml up -d
+
+            echo "[+] Mise à jour de la config Nginx..."
+            cp /opt/wikijs-deploy/nginx/wikijs.conf /etc/nginx/sites-available/wikijs.conf
+            ln -sf /etc/nginx/sites-available/wikijs.conf /etc/nginx/sites-enabled/wikijs.conf
+
+            echo "[+] Vérification de la config Nginx..."
+            nginx -t
+
+            echo "[+] Redémarrage de Nginx..."
+            systemctl restart nginx
