@@ -1,1 +1,1 @@
-# mu-ti-wiki
+# multi-wiki
