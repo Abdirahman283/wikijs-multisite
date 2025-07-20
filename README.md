@@ -1,1 +1,1 @@
-# multi-wiki
+# multi-wikijs
