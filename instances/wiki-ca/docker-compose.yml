@@ -3,16 +3,18 @@ version: "3"
 services:
   db:
     image: postgres:13
+    container_name: wiki-ca-db
     restart: always
     environment:
-      POSTGRES_DB: wikijs-ca
-      POSTGRES_USER: wikijs-ca
-      POSTGRES_PASSWORD: wikijsca123
+      POSTGRES_DB: wikijs_ca_db
+      POSTGRES_USER: wikijs_ca_user
+      POSTGRES_PASSWORD: wiki_ca_pass
     volumes:
-      - db-wikica:/var/lib/postgresql/data
+      - wiki-ca-db:/var/lib/postgresql/data
 
   wikijs:
     image: requarks/wiki:2
+    container_name: ca-wikijs
     restart: always
     ports:
       - "3003:3000"
@@ -20,14 +22,14 @@ services:
       DB_TYPE: postgres
       DB_HOST: db
       DB_PORT: 5432
-      DB_USER: wikijs-ca   # <-- Fixed to match POSTGRES_USER
-      DB_PASS: wikijsca123
-      DB_NAME: wikijs-ca
+      DB_USER: wikijs_ca_user  
+      DB_PASS: wiki_ca_pass
+      DB_NAME: wikijs_ca_db
     depends_on:
       - db
     volumes:
-      - wikica-data:/wiki/data
+      - wiki-ca-data:/wiki/data
 
 volumes:
-  db-wikica:
-  wikica-data:
+  wiki-ca-db:
+  wiki-ca-data:
