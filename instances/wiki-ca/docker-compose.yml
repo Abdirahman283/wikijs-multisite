@@ -1,0 +1,33 @@
+version: "3"
+
+services:
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_DB: wikijs-ca
+      POSTGRES_USER: wikijs-ca
+      POSTGRES_PASSWORD: wikijsca123
+    volumes:
+      - db-wikica:/var/lib/postgresql/data
+
+  wikijs:
+    image: requarks/wiki:2
+    restart: always
+    ports:
+      - "3003:3000"
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: wikijs-ca   # <-- Fixed to match POSTGRES_USER
+      DB_PASS: wikijsca123
+      DB_NAME: wikijs-ca
+    depends_on:
+      - db
+    volumes:
+      - wikica-data:/wiki/data
+
+volumes:
+  db-wikica:
+  wikica-data:
