@@ -1,0 +1,33 @@
+version: "3"
+
+services:
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_DB: wiki_ch_db
+      POSTGRES_USER: wiki_ch_user
+      POSTGRES_PASSWORD: wiki_ch_pass
+    volumes:
+      - wiki-ch-db:/var/lib/postgresql/data
+
+  wikijs:
+    image: requarks/wiki:2
+    restart: always
+    ports:
+      - "3004:3000" 
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: wiki_ch_user
+      DB_PASS: wiki_ch_pass
+      DB_NAME: wiki_ch_db
+    depends_on:
+      - db
+    volumes:
+      - wiki-ch-data:/wiki/data
+
+volumes:
+  wiki-ch-db:
+  wiki-ch-data:
