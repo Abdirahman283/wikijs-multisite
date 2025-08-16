@@ -3,6 +3,7 @@ version: "3"
 services:
   db:
     image: postgres:13
+    container_name: wiki-ch-db
     restart: always
     environment:
       POSTGRES_DB: wiki_ch_db
@@ -13,6 +14,7 @@ services:
 
   wikijs:
     image: requarks/wiki:2
+    container_name: ch-wikijs
     restart: always
     ports:
       - "3004:3000" 
